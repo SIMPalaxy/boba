@@ -88,6 +88,7 @@ rule token = parse
 | "when"			{ WHEN }
 | "then"			{ THEN }
 | "else"			{ ELSE }
+| "switch"          { SWITCH }
 | "while"			{ WHILE }
 | "break"			{ BREAK }
 | "final"			{ FINAL }

@@ -10,7 +10,7 @@ rec func hailstone n =
             let rem quot = 2 n divreme-isize;
             quot hailstone
         }
-        else => 3 n mul-isize 1 add-isize hailstone
+        else => 3 n mul-isize 1 add-isize hailstone;
     }
     n cons-list
 

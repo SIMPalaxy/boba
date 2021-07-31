@@ -66,7 +66,7 @@ open Boba.Core.DotSeq
 %token WITH
 %token MATCH
 %token DO
-%token IF WHEN WHILE THEN ELSE
+%token IF WHEN WHILE THEN ELSE SWITCH
 %token FOR BREAK FINAL FILL LENGTH RESULT
 %token RECORD VARIANT
 %token CASE
@@ -121,8 +121,11 @@ declaration : function											{ DFunc ($1) }
 			| RECURSIVE datatype								{ DRecTypes ([$2]) }
 			| RECURSIVE L_BRACE datatype_list R_BRACE			{ DRecTypes ($3) }
 
-function : FUNCTION SMALL_NAME EQUALS simple_expr								{ { Name = $2; FixedParams = []; Body = $4 } }
-		 | FUNCTION SMALL_NAME L_ANGLE param_list R_ANGLE EQUALS simple_expr	{ { Name = $2; FixedParams = $4; Body = $7 } }
+function : FUNCTION SMALL_NAME function_params EQUALS simple_expr								{ { Name = $2; FixedParams = []; Body = [EStatementBlock([SLet ($3, []); SExpression $5])] } }
+		 | FUNCTION SMALL_NAME L_ANGLE param_list R_ANGLE function_params EQUALS simple_expr	{ { Name = $2; FixedParams = $4; Body = [EStatementBlock([SLet ($6, []); SExpression $8])] } }
+
+function_params :								{ SEnd }
+				| SMALL_NAME function_params	{ ind (PNamed ($1, PWildcard)) $2 }
 
 function_list :	function				{ [$1] }
 			  | function function_list	{ $1 :: $2 }
@@ -153,7 +156,7 @@ term_statement : LET pattern_expr_list							{ SLet { Matcher = $2; Body = [] } 
 local_function_list : local_function						{ [$1] }
 					| local_function local_function_list	{ $1 :: $2 }
 
-local_function : LOCAL FUNCTION SMALL_NAME EQUALS simple_expr	{ { Name = $3; Body = $5 } }
+local_function : LOCAL FUNCTION SMALL_NAME function_params EQUALS simple_expr	{ { Name = $3; FixedParams = []; Body = [EStatementBlock([SLet ($4, []); SExpression $6])] } }
 
 simple_expr :					{ [] }
 			| word simple_expr	{ $1 :: $2 }
@@ -169,6 +172,7 @@ word : term_statement_block				{ EStatementBlock ($1) }
 	 | match_word						{ $1 }
 	 | if_word							{ $1 }
 	 | when_word						{ $1 }
+	 | switch_word						{ $1 }
 	 | while_word						{ $1 }
 	 | function_literal					{ EFunctionLiteral ($1) }
 	 | tuple_literal					{ $1 }
@@ -225,6 +229,15 @@ match_clause : pattern_expr_list R_BIND simple_expr SEMICOLON	{ { Matcher = $1; 
 if_word : IF simple_expr THEN term_statement_block ELSE term_statement_block	{ EIf ($2, $4, $6) }
 
 when_word : WHEN simple_expr THEN term_statement_block	{ EIf ($2, $4, []) }
+
+switch_word : SWITCH simple_expr L_BRACE switch_clause_list R_BRACE	{ ESwitch ($2, $4) }
+
+switch_clause_list : switch_clause						{ [$1] }
+				   | ELSE R_BIND simple_expr SEMICOLON	{ { Cond = [ETrue]; Body = $3 } }
+				   | switch_clause switch_clause_list	{ $1 :: $2 }
+
+switch_clause : simple_expr R_BIND simple_expr SEMICOLON	{ { Cond = $1; Body = [SExpression $3] } }
+			  | simple_expr R_BIND term_statement_block		{ { Cond = $1; Body = $3 } }
 
 while_word : WHILE simple_expr THEN term_statement_block	{ EWhile ($2, $4) }
 

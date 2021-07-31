@@ -68,6 +68,7 @@ module Syntax =
         | EHandle of pars: List<Name> * handled: List<Statement> * handlers: List<Handler> * ret: List<Word>
         | EMatch of clauses: List<MatchClause> * otherwise: List<Word>
         | EIf of cond: List<Word> * thenClause: List<Statement> * elseClause: List<Statement>
+        | ESwitch of List<SwitchClause>
         | EWhile of cond: List<Word> * body: List<Statement>
 
         | EFunctionLiteral of List<Word>
@@ -106,9 +107,10 @@ module Syntax =
         | SLet of MatchClause
         | SLocals of defs: List<LocalFunction>
         | SExpression of body: List<Word>
-    and LocalFunction = { Name: Name; Body: List<Word> }
+    and LocalFunction = { Name: Name; FixedParams: List<Name>; Body: List<Word> }
     and Handler = { Name: Identifier; Params: List<Name>; Body: List<Word> }
     and MatchClause = { Matcher: DotSeq<Pattern>; Body: List<Word> }
+    and SwitchClause = { Cond: List<Word>; Body: List<Statement> }
     and CaseClause = { Tag: Name; Body: List<Word> }
 
 
