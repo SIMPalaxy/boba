@@ -120,6 +120,8 @@ declaration : function											{ DFunc ($1) }
 			| datatype											{ DType ($1) }
 			| RECURSIVE datatype								{ DRecTypes ([$2]) }
 			| RECURSIVE L_BRACE datatype_list R_BRACE			{ DRecTypes ($3) }
+			| test												{ DTest ($1) }
+			| law												{ DLaw ($1) }
 
 function : FUNCTION SMALL_NAME function_params EQUALS simple_expr								{ { Name = $2; FixedParams = []; Body = [EStatementBlock([SLet ($3, []); SExpression $5])] } }
 		 | FUNCTION SMALL_NAME L_ANGLE param_list R_ANGLE function_params EQUALS simple_expr	{ { Name = $2; FixedParams = $4; Body = [EStatementBlock([SLet ($6, []); SExpression $8])] } }
@@ -139,6 +141,17 @@ constructor : BIG_NAME	{ { Name = $1; Components = [] } }
 
 constructor_list : constructor						{ [$1] }
 				 | constructor BAR constructor_list	{ $1 :: $3 }
+
+test : TEST SMALL_NAME EQUALS simple_expr assert_type simple_expr
+
+law : LAW SMALL_NAME function_params EQUALS simple_expr assert_type simple_expr			{ { Name = $2; Exhaustive = false; Pars = $3; Left = $5; Right = $7; Kind = $6; } }
+	| EXHAUSTIVE SMALL_NAME function_params EQUALS simple_expr assert_type simple_expr	{ { Name = $2; Exhaustive = true; Pars = $3; Left = $5; Right = $7; Kind = $6; } }
+
+assert_type : IS			{ TKIs ([]) }
+			| IS_NOT		{ TKIsNot ([]) }
+			| IS_ROUGHLY	{ TKIsRoughly }
+			| SATISFIES		{ TKSatisfies }
+			| VIOLATES		{ TKViolates }
 
 
 

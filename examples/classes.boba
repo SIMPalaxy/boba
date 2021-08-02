@@ -1,0 +1,30 @@
+
+class Functor f with
+    map : (a^s1)... ((f b^s2)^s2&s3) ((a^s1)... b^s2 --[e][p][t]--> (a^s1)... c^s4)^s1&s2 --[e][p][t]--> (a^s1)... ((f c^s4))
+
+    law map-id-is-id a = a id map is a id
+    law map-preserves-composition f g a = a (f g) map is a f map g map
+
+instance Functor List with
+    map l f =
+        l match {
+            list {} => list {};
+            list {h, t...} => t f map h f cons-list
+        }
+
+instance Functor Option with
+    map o f =
+        o match {
+            None => None
+            Some x => x f Some
+        }
+
+instance Functor (Either a) with
+    map e f =
+        e match {
+            Left a => a Left
+            Right b => b f Right
+        }
+
+instance Functor Tuple with
+    map = tuple-map

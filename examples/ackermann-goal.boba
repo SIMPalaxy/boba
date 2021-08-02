@@ -7,6 +7,12 @@ func is-zero = 0 eq-isize
 func gt-zero = 0 swap gt-isize
 func lt-zero = 0 swap lt-isize
 
+ackermann summary:
+    This is a simple demonstration of the Ackermann function in Boba.
+end summary
+
+check ackermann: (a^s1)... ISize^s2 ISize^s3 --[e][p][t]--> (a^s1)... ISize^s4
+
 rec func ackermann n m =
     switch {
         m is-zero => n inc;
